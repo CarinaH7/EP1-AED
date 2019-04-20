@@ -5,7 +5,12 @@
 
 #define INFINITY INT_MAX/2
 #define MAX 50
+#define true 1
+#define false 0
+
+typedef int bool;
 typedef int * POINT;
+
 typedef struct{
     int o[MAX];
     int d[MAX];
@@ -38,17 +43,50 @@ void recebeArestas(GRAFO * g,FILE * file,int n, int m){
     }
     g->numVert=n;
 }
-void inicializaPD(GRAFO * g, int *d, int *p){
+void inicializaKey(GRAFO * g, int *key, int *p){
     int v;
     for(v=0;v<g->numVert;v++){
-        d[v]=INFINITY;
+        key[v]=INFINITY;
         p[v]=-1;
     }
 }
-void MST_PRIM(GRAFO * g){
-    int *d=(int *) malloc(g->numVert*sizeof(int));
+/*Verifica se ainda existe um vertica que nao eh livre( que nao fois selecionado ainda)*/
+bool existeLivre(GRAFO*g,bool *livre){//Norton usou int aberto?
+    int i;
+    for(i=0;i<g->numVert;i++){
+        if(livre[i]) return true;
+    }
+    return false;
+}
+/**Retorna a menor distancia */
+int extractMin(GRAFO*g, bool *livre,int *key){
+    int i;
+    for(i=0;i<g->numVert;i++){
+        if(livre[i]) break;    //Busca o primeiro livre
+    }
+    if(i==g->numVert)return -1; //Se varreu o for e nao encontrou o arranjo
+    int menor= i;
+    for(i=menor;i<g->numVert;i++)
+        if(livre[i] && key[menor]>key[i])
+            menor=i;
+}
+void MST_PRIM(GRAFO * g,int raiz){
+    int *key=(int *) malloc(g->numVert*sizeof(int));
     int p[g->numVert];
-    inicializaPD(g,d,&p);
+    bool livre[g->numVert];
+    inicializaKey(g,key,&p);
+    key[raiz]=0;
+
+    int i;
+    for(i=0;i<g->numVert;i++){
+        livre[i]=true;
+    }
+    while(existeLivre(g,&livre)){
+        int u=extractMin(g,livre,key);
+        livre[u]=false;
+    /***PAREI AQUII***/
+    }
+
 }
 int main(){
 
