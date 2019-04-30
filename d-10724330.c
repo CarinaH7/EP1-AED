@@ -28,6 +28,12 @@ typedef struct{
     VERTICE *adj;
 }GRAFO;
 
+typedef struct{
+    int vet;
+    int arestas;
+    VERTICE *adj;
+}AGM;
+
 GRAFO *criagGrafo(int n,int m){
     GRAFO * g = (GRAFO*) malloc(sizeof(GRAFO));
     g->vet = n;
@@ -73,6 +79,7 @@ void recebeArestas(GRAFO * g,FILE * file,int n, int m){
     }
     imprimeGrafo(g);
 }
+
 void inicializaCusto(GRAFO * g, int *custo, int *p){
     int v;
     for(v=0;v<g->vet;v++){
@@ -80,6 +87,7 @@ void inicializaCusto(GRAFO * g, int *custo, int *p){
         p[v]=-1;
     }
 }
+
 /*Verifica se ainda existe um vertica que nao eh livre( que nao fois selecionado ainda)*/
 bool existeLivre(GRAFO*g,bool *livre){//Norton usou int aberto?
     int i;
@@ -88,8 +96,9 @@ bool existeLivre(GRAFO*g,bool *livre){//Norton usou int aberto?
     }
     return false;
 }
+
 /**Retorna a menor distancia */
-int extractMin(GRAFO*g, bool *livre,int *key){
+int extractMin(GRAFO*g, bool *livre,int *custo){
     int i;
     for(i=0;i<g->vet;i++){
         if(livre[i]) break;    //Busca o primeiro livre
@@ -97,11 +106,13 @@ int extractMin(GRAFO*g, bool *livre,int *key){
     if(i==g->vet)return -1; //Se varreu o for e nao encontrou o arranjo
     int menor= i;
     for(i=menor;i<g->vet;i++)
-        if(livre[i] && key[menor]>key[i])
+        if(livre[i] && custo[menor]>custo[i])
             menor=i;
     return menor;
 }
-void MST_PRIM(GRAFO * g,int raiz){
+
+GRAFO *MST_PRIM(GRAFO * g,int raiz){
+    AGM *S=criagGrafo(g->vet,g->vet);
     int *custo=(int *) malloc(g->vet*sizeof(int));
     int p[g->vet];
     bool livre[g->vet];
@@ -115,6 +126,8 @@ void MST_PRIM(GRAFO * g,int raiz){
     }
     while(existeLivre(g,&livre)){
         int u=extractMin(g,livre,custo);
+        criaAresta(S,u,p[u],custo[u]);
+
         livre[u]=false;
         ADJACENCIA *adj = g->adj[u].cab;
         while(adj){
@@ -123,6 +136,27 @@ void MST_PRIM(GRAFO * g,int raiz){
                 p[adj->vert]=u;
             }
             adj= adj->prox;
+        }
+    }
+    return S;
+}
+void custoGrafo(GRAFO *g,int *custo){
+    int i;
+    for(i=0;i<g->vet;i++){
+       *custo+=g->adj->cab->custo;
+    }
+}
+void imprimeS(GRAFO * S){
+    int custo;
+    custoGrafo(S,&custo);
+    printf("%i\n", custo);
+    int i;
+
+    for(i=0;i<S->vet;i++){
+        ADJACENCIA *adj=S->adj[i].cab;
+        while(adj){
+            printf("%i %i\n",i,adj->vert);
+            adj=adj->prox;
         }
     }
 }
@@ -153,7 +187,7 @@ int main(){
 
     recebeArestas(g,file,n,m);
     printf("\n");
-    MST_PRIM(g,0);
-    imprimeGrafo(g);
+    AGM *S=MST_PRIM(g,0);
+    imprimeS(S);
     return 0;
 }
